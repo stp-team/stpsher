@@ -18,6 +18,10 @@ menu_window = Window(
 Я - бот-помощник СТП
 
 <i>Используй меню для взаимодействия с ботом</i>"""),
+    Url(
+        Const("🌐 ВебАпп"),
+        url=Const("https://stpsher.miniapp.dom-stp.ru"),
+    ),
     SCHEDULES_BTN,
     Row(
         Button(Const("📂 Файлы"), id="files", on_click=start_files_dialog),
