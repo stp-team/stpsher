@@ -24,15 +24,32 @@ async def products_getter(
         user_id=user.user_id
     )
 
-    # Для менеджеров загружаем все продукты или фильтруем по указанному подразделению
-    # Для обычных пользователей - только их подразделение
-    # Специальное значение "all" означает загрузку всех продуктов без фильтра
+    # Получаем все продукты для указанного подразделения
     if division == "all":
-        products = await stp_repo.product.get_products()
+        all_products = await stp_repo.product.get_products()
     elif division is not None:
-        products = await stp_repo.product.get_products(division=division)
+        all_products = await stp_repo.product.get_products(division=division)
     else:
-        products = await stp_repo.product.get_products(division=user.division)
+        all_products = await stp_repo.product.get_products(division=user.division)
+
+    # Фильтруем продукты по buyer_roles пользователя:
+    # В МАГАЗИНЕ показываем только те продукты, которые пользователь может КУПИТЬ
+    # (роль пользователя в buyer_roles)
+    # Продукты, где пользователь является менеджером (manager_role), в магазине НЕ показываем
+    products = []
+    for product in all_products:
+        # Проверяем, может ли пользователь купить этот продукт
+        can_buy = False
+
+        # Проверка buyer_roles: продукт доступен для покупки, если buyer_roles пустой/None
+        # ИЛИ содержит роль пользователя
+        if product.buyer_roles is None or product.buyer_roles == []:
+            can_buy = True
+        elif user.role in product.buyer_roles:
+            can_buy = True
+
+        if can_buy:
+            products.append(product)
 
     formatted_products = []
     for product in products:

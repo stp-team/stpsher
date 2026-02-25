@@ -66,7 +66,7 @@ game_window = Window(
 - Просматривать список предметов""",
         when=~F["is_user"],
     ),
-    SwitchTo(Const("💎 Магазин"), id="products", state=GameSG.products, when="is_user"),
+    SwitchTo(Const("💎 Магазин"), id="products", state=GameSG.products),
     SwitchTo(
         Const("✍️ Активация предметов"),
         id="products_activation",
@@ -91,12 +91,6 @@ game_window = Window(
         Const("🎯 Достижения"),
         id="achievements",
         state=GameSG.achievements,
-    ),
-    SwitchTo(
-        Const("👏 Предметы"), id="products", state=GameSG.products, when=~F["is_user"]
-    ),
-    SwitchTo(
-        Const("📜 История баланса"), id="history", state=GameSG.history, when="is_user"
     ),
     HOME_BTN,
     getter=game_getter,

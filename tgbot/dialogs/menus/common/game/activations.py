@@ -2,6 +2,7 @@
 
 import operator
 
+from aiogram.enums import ButtonStyle
 from aiogram_dialog.widgets.common import sync_scroll
 from aiogram_dialog.widgets.input import TextInput
 from aiogram_dialog.widgets.kbd import (
@@ -11,6 +12,7 @@ from aiogram_dialog.widgets.kbd import (
     Select,
     SwitchTo,
 )
+from aiogram_dialog.widgets.style import Style
 from aiogram_dialog.widgets.text import Const, Format, List
 from aiogram_dialog.window import Window
 
@@ -59,10 +61,9 @@ activations_window = Window(
         on_page_changed=sync_scroll("activations_list"),
     ),
     Row(
-        SwitchTo(Const("↩️ Назад"), id="menu", state=GameSG.menu),
         SwitchTo(Const("📜 История"), id="history", state=GameSG.activations_history),
     ),
-    Row(HOME_BTN),
+    Row(SwitchTo(Const("↩️ Назад"), id="menu", state=GameSG.menu), HOME_BTN),
     getter=activations_getter,
     state=GameSG.activations,
 )
@@ -97,10 +98,16 @@ activation_details_window = Window(
 {selected_activation[bought_at]}{user_comment_text}"""),
     Row(
         SwitchTo(
-            Const("✅ Одобрить"), id="approve", state=GameSG.activation_approve_comment
+            Const("Одобрить"),
+            id="approve",
+            style=Style(style=ButtonStyle.SUCCESS, emoji_id="5206607081334906820"),
+            state=GameSG.activation_approve_comment,
         ),
         SwitchTo(
-            Const("❌ Отклонить"), id="reject", state=GameSG.activation_reject_comment
+            Const("Отклонить"),
+            id="reject",
+            style=Style(style=ButtonStyle.DANGER, emoji_id="5210952531676504517"),
+            state=GameSG.activation_reject_comment,
         ),
     ),
     Row(SwitchTo(Const("↩️ Назад"), id="back", state=GameSG.activations), HOME_BTN),

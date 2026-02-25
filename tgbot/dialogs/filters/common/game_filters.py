@@ -118,76 +118,86 @@ async def product_filter_getter(
     Returns:
         Словарь предметов с активным фильтром и балансом пользователя
     """
-    # Определяем роль пользователя
-    is_user = user.role in [1, 3]  # Специалисты и дежурные
-    is_manager = user.role in [2, 5, 6]  # ГОК и МИП
-
-    # Для менеджеров получаем выбранное подразделение
-    if is_manager:
-        selected_division = dialog_manager.find("product_division_filter").get_checked()
-        if selected_division == "all":
-            # Загружаем все продукты без фильтра
-            division_param = "all"
-        else:
-            # Преобразуем выбранное подразделение в название
-            division_map = {"nck": "НЦК", "ntp": "НТП"}
-            division_param = division_map.get(selected_division)
-
-        # Загружаем продукты с учетом фильтра подразделения
-        base_data = await products_getter(
-            user=user, stp_repo=stp_repo, division=division_param, **kwargs
-        )
+    # Нормализуем подразделение пользователя: НТП1/НТП2 -> НТП, НЦК остается НЦК
+    if "НТП1" in user.division or "НТП2" in user.division:
+        normalized_division = "НТП"
+    elif "НЦК" in user.division:
+        normalized_division = "НЦК"
     else:
-        # Для обычных пользователей загружаем только их подразделение
-        # Нормализуем подразделение: НТП1/НТП2 -> НТП, НЦК остается НЦК
-        normalized_division = (
-            "НТП"
-            if "НТП" in user.division
-            else "НЦК"
-            if "НЦК" in user.division
-            else user.division
-        )
+        normalized_division = user.division
 
-        base_data = await products_getter(
-            user=user, stp_repo=stp_repo, division=normalized_division, **kwargs
-        )
+    # Получаем выбранное подразделение из фильтра
+    selected_division = dialog_manager.find("product_division_filter").get_checked()
+
+    # Преобразуем выбранное подразделение
+    division_map = {"all": "all", "nck": "НЦК", "ntp": "НТП"}
+    division_param = division_map.get(selected_division, normalized_division)
+
+    # Получаем исходные данные о продуктах для выбранного подразделения
+    # (только те, которые пользователь может купить - по buyer_roles)
+    base_data = await products_getter(
+        user=user, stp_repo=stp_repo, division=division_param, **kwargs
+    )
 
     products = base_data["products"]
     user_balance = base_data["user_balance"]
 
-    # Для обычных пользователей фильтруем по доступности (стоимости)
-    if is_user:
-        filter_type = dialog_manager.find("product_filter").get_checked()
+    # Получаем все активные продукты для определения доступных подразделений
+    all_active_products = await stp_repo.product.get_products()
 
-        if filter_type == "available":
-            # Фильтруем предметы, доступные пользователю по балансу
-            filtered_products = [
-                p for p in products if p[4] <= user_balance
-            ]  # p[4] это стоимость
-        else:  # "Все предметы"
-            filtered_products = products
-    else:
-        # Для менеджеров показываем все предметы (фильтр уже применен при загрузке)
+    # Определяем, какие продукты доступны пользователю для ПОКУПКИ (роль в buyer_roles)
+    # Менеджерские продукты (manager_role) в магазине не показываем
+    available_divisions = set()
+    for product in all_active_products:
+        can_buy = False
+
+        # Проверка buyer_roles: продукт доступен для покупки
+        if product.buyer_roles is None or product.buyer_roles == []:
+            can_buy = True
+        elif user.role in product.buyer_roles:
+            can_buy = True
+
+        if can_buy:
+            available_divisions.add(product.division)
+
+    # Строим радио-кнопки для доступных подразделений
+    division_radio_data = []
+    if "all" in [selected_division] or len(available_divisions) > 1:
+        division_radio_data.append(("all", "Все"))
+    if "НЦК" in available_divisions:
+        division_radio_data.append(("nck", "НЦК"))
+    if "НТП" in available_divisions:
+        division_radio_data.append(("ntp", "НТП"))
+
+    # Фильтруем по доступности (балансу)
+    filter_type = dialog_manager.find("product_filter").get_checked()
+
+    if filter_type == "available":
+        # Фильтруем предметы, доступные пользователю по балансу
+        filtered_products = [
+            p for p in products if p[4] <= user_balance
+        ]  # p[4] это стоимость
+    else:  # "Все предметы"
         filtered_products = products
-        filter_type = None
 
-    # Данные для радио-кнопок подразделений (для менеджеров)
-    division_radio_data = [("all", "Все"), ("nck", "НЦК"), ("ntp", "НТП")]
+    # Определяем, может ли пользователь покупать продукты (есть ли продукты с его ролью в buyer_roles)
+    can_buy_any = False
+    for product in all_active_products:
+        if product.buyer_roles is None or product.buyer_roles == []:
+            can_buy_any = True
+            break
+        elif user.role in product.buyer_roles:
+            can_buy_any = True
+            break
 
     result = {
         "products": filtered_products,
         "user_balance": user_balance,
-        "is_user": is_user,
+        "is_user": can_buy_any,  # True, если пользователь может покупать продукты
+        "product_filter": filter_type,
+        "product_division_filter": selected_division,
         "division_radio_data": division_radio_data,
     }
-
-    # Добавляем специфичные для роли данные
-    if is_user:
-        result["product_filter"] = filter_type
-    else:
-        result["product_division_filter"] = dialog_manager.find(
-            "product_division_filter"
-        ).get_checked()
 
     return result
 
