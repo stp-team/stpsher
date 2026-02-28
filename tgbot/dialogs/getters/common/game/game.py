@@ -28,6 +28,7 @@ async def game_getter(
     level_info = LevelingSystem.get_level_info_text(achievements_sum, user_balance)
 
     return {
+        "balance": user_balance,
         "achievements_sum": achievements_sum,
         "purchases_sum": purchases_sum,
         "level_info": level_info,

@@ -8,7 +8,7 @@ from stp_database.repo.STP import MainRequestsRepo
 
 
 async def products_getter(
-    user: Employee, stp_repo: MainRequestsRepo, division: str = None, **_kwargs
+    user: Employee, stp_repo: MainRequestsRepo, division: str | None = None, **_kwargs
 ) -> Dict[str, Any]:
     """Геттер для получения списка предметов магазина.
 
@@ -26,11 +26,13 @@ async def products_getter(
 
     # Получаем все продукты для указанного подразделения
     if division == "all":
-        all_products = await stp_repo.product.get_products()
-    elif division is not None:
-        all_products = await stp_repo.product.get_products(division=division)
+        all_products = await stp_repo.product.get_products(
+            division=user.division, role=user.role
+        )
     else:
-        all_products = await stp_repo.product.get_products(division=user.division)
+        all_products = await stp_repo.product.get_available_products(
+            user_balance, division=user.division, user_role=user.role
+        )
 
     # Фильтруем продукты по buyer_roles пользователя:
     # В МАГАЗИНЕ показываем только те продукты, которые пользователь может КУПИТЬ
