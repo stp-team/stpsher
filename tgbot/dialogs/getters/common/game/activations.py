@@ -101,10 +101,20 @@ async def activation_detail_getter(
 
     # Получаем информацию о пользователе, который купил предмет
     purchase_user = await stp_repo.employee.get_users(user_id=purchase.user_id)
+    purchase_user_head = await stp_repo.employee.get_users(fullname=purchase_user.head)
     purchase_user_text = format_fullname(
         purchase_user,
         True,
         True,
+    )
+    purchase_head_text = (
+        format_fullname(
+            purchase_user_head,
+            True,
+            True,
+        )
+        if purchase_user_head
+        else purchase_user.head
     )
 
     # Вычисляем следующий номер активации
@@ -121,7 +131,7 @@ async def activation_detail_getter(
         "user_name": purchase_user_text,
         "user_position": purchase_user.position if purchase_user else "Неизвестно",
         "user_division": purchase_user.division if purchase_user else "Неизвестно",
-        "user_head": purchase_user.head if purchase_user else "Неизвестно",
+        "user_head": purchase_head_text,
         "fullname": purchase_user_text,
         "username": purchase_user.username if purchase_user else None,
         "user_id": purchase_user.user_id if purchase_user else purchase.user_id,

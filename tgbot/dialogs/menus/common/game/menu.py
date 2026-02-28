@@ -57,16 +57,16 @@ game_window = Window(
 <blockquote expandable><b>✨ Баланс</b>
 Всего заработано: {achievements_sum} баллов
 Всего потрачено: {purchases_sum} баллов</blockquote>""",
-        when="is_user",
+        when=F["balance"] > 0,
     ),
     Const(
         """\nЗдесь ты можешь:
 - Подтверждать/отклонять покупки специалистов
 - Просматривать список достижений
 - Просматривать список предметов""",
-        when=~F["is_user"],
+        when=F["balance"] == 0,
     ),
-    SwitchTo(Const("💎 Магазин"), id="products", state=GameSG.products, when="is_user"),
+    SwitchTo(Const("💎 Магазин"), id="products", state=GameSG.products),
     SwitchTo(
         Const("✍️ Активация предметов"),
         id="products_activation",
@@ -74,29 +74,19 @@ game_window = Window(
         when="activations_access",
     ),
     Row(
-        SwitchTo(
-            Const("🎒 Инвентарь"),
-            id="inventory",
-            state=GameSG.inventory,
-            when="is_user",
-        ),
+        SwitchTo(Const("🎒 Инвентарь"), id="inventory", state=GameSG.inventory),
         SwitchTo(
             Const("🎲 Казино"),
             id="casino",
             state=GameSG.casino,
             when="is_casino_allowed",
         ),
+        when=F["balance"] > 0,
     ),
     SwitchTo(
         Const("🎯 Достижения"),
         id="achievements",
         state=GameSG.achievements,
-    ),
-    SwitchTo(
-        Const("👏 Предметы"), id="products", state=GameSG.products, when=~F["is_user"]
-    ),
-    SwitchTo(
-        Const("📜 История баланса"), id="history", state=GameSG.history, when="is_user"
     ),
     HOME_BTN,
     getter=game_getter,
