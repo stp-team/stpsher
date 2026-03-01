@@ -7,7 +7,6 @@ from stp_database.models.STP import Employee
 from stp_database.repo.STP import MainRequestsRepo
 
 from tgbot.misc.helpers import (
-    calculate_age,
     calculate_work_experience,
     format_fullname,
     get_role,
@@ -50,15 +49,6 @@ def create_user_info_message(user: Employee, user_head: Employee = None) -> str:
 
     if user.email:
         message_parts.append(f"<b>📧 Email:</b> {user.email}")
-
-    if user.birthday:
-        age = calculate_age(user.birthday)
-        birthday_text = (
-            f"\n<b>🍰 День рождения:</b> {user.birthday.strftime('%d.%m.%Y')}"
-        )
-        if age is not None:
-            birthday_text += f" <tg-spoiler>({age})</tg-spoiler>"
-        message_parts.append(birthday_text)
 
     if user.employment_date:
         work_experience = calculate_work_experience(user.employment_date)

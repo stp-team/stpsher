@@ -340,45 +340,6 @@ def format_currency_price(
         return f"{price:g} ₽/ч. ({total_price:g} ₽)"
 
 
-def calculate_age(birthday):
-    """Вычисляет возраст на основе даты рождения.
-
-    Args:
-        birthday: Дата рождения (строка в формате DD.MM.YYYY)
-
-    Returns:
-        str: Возраст с правильным склонением (например, "32 года"), или None если дата невалидна
-    """
-    if not birthday:
-        return None
-
-    try:
-        # Парсим дату в формате DD.MM.YYYY
-        if isinstance(birthday, str):
-            day, month, year = birthday.split(".")
-            birthday = date(int(year), int(month), int(day))
-        elif hasattr(birthday, "date"):
-            birthday = birthday.date()
-
-        today = date.today()
-        age = today.year - birthday.year
-
-        # Корректируем возраст, если день рождения ещё не наступил в этом году
-        if (today.month, today.day) < (birthday.month, birthday.day):
-            age -= 1
-
-        # Правильное склонение для возраста
-        if age % 10 == 1 and age % 100 != 11:
-            return f"{age} год"
-        elif age % 10 in [2, 3, 4] and age % 100 not in [12, 13, 14]:
-            return f"{age} года"
-        else:
-            return f"{age} лет"
-
-    except (ValueError, AttributeError):
-        return None
-
-
 def calculate_work_experience(employment_date):
     """Вычисляет стаж работы на основе даты трудоустройства.
 
