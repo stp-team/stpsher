@@ -26,13 +26,17 @@ async def game_getter(
     """
     #user_balance = await stp_repo.transaction.get_user_balance(user_id=user.user_id)
     await normalize_transaction_user_id_for_employee(user, stp_repo)
+
     transaction_user_id = user.employee_id or user.user_id
+    # Совместимость: в некоторых шаблонах/фильтрах это поле читается как атрибут user
+    setattr(user, "transaction_user_id", transaction_user_id)
+
     user_balance = await stp_repo.transaction.get_user_balance(
         user_id=transaction_user_id
     )
 
     achievements_sum = await stp_repo.transaction.get_user_achievements_sum(
-        user_id=user.user_id
+        user_id=user.transaction_user_id
     )
     purchases_sum = await stp_repo.purchase.get_user_purchases_sum(user_id=user.user_id)
     level_info = LevelingSystem.get_level_info_text(achievements_sum, user_balance)
