@@ -29,6 +29,7 @@ async def on_product_click(
     """
     stp_repo: MainRequestsRepo = dialog_manager.middleware_data["stp_repo"]
     user = dialog_manager.middleware_data["user"]
+    transaction_user_id = user.employee_id
 
     try:
         product_info = await stp_repo.product.get_product(item_id)
@@ -40,7 +41,8 @@ async def on_product_click(
         return
 
     # Получаем баланс пользователя
-    user_balance = await stp_repo.transaction.get_user_balance(user.user_id)
+    #user_balance = await stp_repo.transaction.get_user_balance(user.user_id)
+    user_balance = await stp_repo.transaction.get_user_balance(transaction_user_id)
 
     # Проверяем, достаточно ли баллов
     if user_balance < product_info.cost:
@@ -77,10 +79,12 @@ async def on_confirm_purchase(
     """
     stp_repo: MainRequestsRepo = dialog_manager.middleware_data["stp_repo"]
     user = dialog_manager.middleware_data["user"]
+    transaction_user_id = user.employee_id
     product_info = dialog_manager.dialog_data["selected_product"]
 
     # Получаем актуальный баланс пользователя
-    user_balance = await stp_repo.transaction.get_user_balance(user.user_id)
+    #user_balance = await stp_repo.transaction.get_user_balance(user.user_id)
+    user_balance = await stp_repo.transaction.get_user_balance(transaction_user_id)
 
     if user_balance < product_info["cost"]:
         await event.answer(
@@ -95,7 +99,7 @@ async def on_confirm_purchase(
             user_id=user.user_id, product_id=product_info["id"], status="stored"
         )
         await stp_repo.transaction.add_transaction(
-            user_id=user.user_id,
+            user_id=transaction_user_id,
             transaction_type="spend",
             source_type="product",
             source_id=product_info["id"],
@@ -129,13 +133,14 @@ async def on_sell_product(
     """
     stp_repo: MainRequestsRepo = dialog_manager.middleware_data["stp_repo"]
     user = dialog_manager.middleware_data["user"]
+    transaction_user_id = user.employee_id
     new_purchase = dialog_manager.dialog_data["new_purchase"]
     product_info = dialog_manager.dialog_data["selected_product"]
 
     try:
         success = await stp_repo.purchase.delete_user_purchase(new_purchase["id"])
         await stp_repo.transaction.add_transaction(
-            user_id=user.user_id,
+            user_id=transaction_user_id,
             transaction_type="earn",
             source_type="product",
             source_id=product_info["id"],

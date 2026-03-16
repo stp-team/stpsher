@@ -20,8 +20,9 @@ async def products_getter(
     Returns:
         Словарь из списка предметов и баланса сотрудника
     """
+    transaction_user_id = user.employee_id
     user_balance: int = await stp_repo.transaction.get_user_balance(
-        user_id=user.user_id
+        user_id=transaction_user_id
     )
 
     # Получаем все продукты для указанного подразделения

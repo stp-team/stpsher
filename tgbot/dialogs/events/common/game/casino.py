@@ -128,7 +128,10 @@ async def play_casino_game(
     """
     # Получаем текущую ставку и баланс
     current_rate = dialog_manager.dialog_data.get("casino_rate", 10)
-    user_balance = await stp_repo.transaction.get_user_balance(user.user_id)
+    #user_balance = await stp_repo.transaction.get_user_balance(user.user_id)
+
+    transaction_user_id = user.employee_id
+    user_balance = await stp_repo.transaction.get_user_balance(transaction_user_id)
 
     # Проверяем баланс
     if user_balance < current_rate:
@@ -165,7 +168,7 @@ async def play_casino_game(
     # Обновляем баланс
     if net_win > 0:
         await stp_repo.transaction.add_transaction(
-            user_id=user.user_id,
+            user_id=transaction_user_id,
             transaction_type="earn",
             source_type="casino",
             amount=net_win,
@@ -173,7 +176,7 @@ async def play_casino_game(
         )
     elif net_win < 0:
         await stp_repo.transaction.add_transaction(
-            user_id=user.user_id,
+            user_id=transaction_user_id,
             transaction_type="spend",
             source_type="casino",
             amount=abs(net_win),

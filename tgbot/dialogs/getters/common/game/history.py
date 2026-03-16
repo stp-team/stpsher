@@ -21,8 +21,9 @@ async def history_getter(
     Returns:
         Словарь с информацией о транзакциях пользователя
     """
+    transaction_user_id = user.employee_id
     user_transactions = await stp_repo.transaction.get_user_transactions(
-        user_id=user.user_id
+        user_id=transaction_user_id
     )
 
     total_transactions = len(user_transactions)

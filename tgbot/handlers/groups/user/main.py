@@ -105,9 +105,12 @@ async def balance_cmd(message: Message, user: Employee, stp_repo: MainRequestsRe
         stp_repo: Репозиторий операций с базой STP
     """
     try:
-        user_balance = await stp_repo.transaction.get_user_balance(user_id=user.user_id)
+        transaction_user_id = user.employee_id
+        user_balance = await stp_repo.transaction.get_user_balance(
+            user_id=transaction_user_id
+        )
         achievements_sum = await stp_repo.transaction.get_user_achievements_sum(
-            user_id=user.user_id
+            user_id=transaction_user_id
         )
         level_info_text = LevelingSystem.get_level_info_text(
             achievements_sum, user_balance
@@ -159,8 +162,10 @@ async def top_cmd(message: Message, user: Employee, stp_repo: MainRequestsRepo):
         for member_data in group_members_data:
             # Получаем информацию о сотруднике по member_id
             employee = await stp_repo.employee.get_users(user_id=member_data.member_id)
-            if employee and employee.user_id:
-                balance = await stp_repo.transaction.get_user_balance(employee.user_id)
+            if employee and employee.employee_id:
+                balance = await stp_repo.transaction.get_user_balance(
+                    employee.employee_id
+                )
                 balance_data.append({"employee": employee, "balance": balance})
 
         # Сортируем по балансу (больше = лучше)

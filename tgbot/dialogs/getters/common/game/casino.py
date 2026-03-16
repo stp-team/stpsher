@@ -25,7 +25,10 @@ async def balance_getter(stp_repo: MainRequestsRepo, user: Employee, **_kwargs) 
     Returns:
         Словарь с балансом пользователя
     """
-    user_balance = await stp_repo.transaction.get_user_balance(user.user_id)
+    #user_balance = await stp_repo.transaction.get_user_balance(user.user_id)
+    transaction_user_id = user.employee_id
+    user_balance = await stp_repo.transaction.get_user_balance(transaction_user_id)
+
     return {
         "balance": user_balance,
         "is_casino_allowed": user.is_casino_allowed,
@@ -48,7 +51,9 @@ async def casino_game_getter(
     Returns:
         Словарь с балансом и текущей ставкой
     """
-    user_balance = await stp_repo.transaction.get_user_balance(user.user_id)
+    #user_balance = await stp_repo.transaction.get_user_balance(user.user_id)
+    transaction_user_id = user.employee_id
+    user_balance = await stp_repo.transaction.get_user_balance(transaction_user_id)
 
     # Если ставка не установлена, устанавливаем 10% от баланса (минимум 10)
     if "casino_rate" not in dialog_manager.dialog_data:
@@ -124,7 +129,9 @@ async def casino_result_getter(
     Returns:
         Словарь с результатами игры
     """
-    user_balance = await stp_repo.transaction.get_user_balance(user.user_id)
+    #user_balance = await stp_repo.transaction.get_user_balance(user.user_id)
+    transaction_user_id = user.employee_id
+    user_balance = await stp_repo.transaction.get_user_balance(transaction_user_id)
 
     # Получаем результаты из dialog_data
     result_icon = dialog_manager.dialog_data.get("result_icon", "❌")

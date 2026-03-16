@@ -141,7 +141,8 @@ async def process_casino_game(
     """
     try:
         # Проверяем баланс
-        user_balance = await stp_repo.transaction.get_user_balance(user.user_id)
+        transaction_user_id = user.employee_id
+        user_balance = await stp_repo.transaction.get_user_balance(transaction_user_id)
 
         if user_balance < bet_amount:
             await message.reply(
@@ -174,7 +175,7 @@ async def process_casino_game(
         # Обновляем баланс
         if net_win > 0:
             await stp_repo.transaction.add_transaction(
-                user_id=user.user_id,
+                user_id=transaction_user_id,
                 transaction_type="earn",
                 source_type="casino",
                 amount=net_win,
@@ -182,7 +183,7 @@ async def process_casino_game(
             )
         elif net_win < 0:
             await stp_repo.transaction.add_transaction(
-                user_id=user.user_id,
+                user_id=transaction_user_id,
                 transaction_type="spend",
                 source_type="casino",
                 amount=abs(net_win),
@@ -190,7 +191,7 @@ async def process_casino_game(
             )
 
         # Получаем новый баланс
-        new_balance = await stp_repo.transaction.get_user_balance(user.user_id)
+        new_balance = await stp_repo.transaction.get_user_balance(transaction_user_id)
 
         # Формируем сообщение о результате используя общую функцию
         result_data = format_result(game_type, dice_value, multiplier, net_win)
