@@ -32,7 +32,7 @@ async def game_getter(
     )
 
     achievements_sum = await stp_repo.transaction.get_user_achievements_sum(
-        user_id=user.transaction_user_id
+        user_id=user.user_id
     )
     purchases_sum = await stp_repo.purchase.get_user_purchases_sum(user_id=user.user_id)
     level_info = LevelingSystem.get_level_info_text(achievements_sum, user_balance)
